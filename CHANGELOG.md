@@ -7,7 +7,7 @@ skill is a patch release, and renaming or removing a skill is a major release.
 
 ## [Unreleased]
 
-## [0.1.0] - unreleased
+## [0.1.0] - 2026-10-22
 
 ### Added
 
