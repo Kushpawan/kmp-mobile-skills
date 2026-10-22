@@ -1,0 +1,28 @@
+# Scan policy for the "Skill security scan" job in .github/workflows/ci.yml.
+# The balanced preset, plus scoped suppressions for findings reviewed as false positives.
+# Each entry names one rule, one skill and one file. The rule stays active everywhere else.
+# Review an entry again whenever the file it names changes.
+policy_name: kmp-mobile-skills
+policy_version: "1.0"
+preset_base: balanced
+
+suppressions:
+  - rule_id: COMMAND_INJECTION_EVAL
+    skills: [kmp-build-check]
+    paths: [scripts/run_checks.py]
+    reason: >-
+      Matches the text "compile(" inside a regex for Gradle task names
+      (compileIos...KotlinMetadata). The script never calls eval, exec or compile().
+  - rule_id: COMMAND_INJECTION_OS_SYSTEM
+    skills: [kmp-build-check]
+    paths: [scripts/run_checks.py]
+    reason: >-
+      subprocess.run gets an argument list, never a shell string, so there is no shell
+      injection. --remote, --base and --base-ref values that start with "-" are rejected
+      before they reach git, so they cannot be read as git options.
+  - rule_id: PATH_TRAVERSAL_OPEN
+    skills: [kmp-gradle-version-catalog]
+    paths: [scripts/catalog_drift.py]
+    reason: >-
+      Opens files found by os.walk under a project directory the user names, read-only,
+      to report hardcoded versions. Paths are not built from untrusted input.

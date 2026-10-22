@@ -56,6 +56,8 @@ jobs:
       skill_path: skills
       scanner_version: "2.3.1"
       scan_mode: scan-all
+      # balanced preset plus reviewed, scoped false-positive suppressions
+      policy: .github/skill-scanner-policy.yaml
       fail_on_severity: high
       # SARIF upload needs code scanning, which forks and private repos may not have.
       upload_sarif: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
