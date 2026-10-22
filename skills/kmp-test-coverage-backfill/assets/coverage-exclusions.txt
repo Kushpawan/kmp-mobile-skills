@@ -1,0 +1,30 @@
+# Kover class exclusions: the single source of truth for this project.
+# Loaded by each module's build.gradle.kts (see references/kover-setup.md) and by kover_gaps.py.
+#
+# Format: one class pattern per line. Blank lines and lines starting with # are ignored.
+# Kover pattern syntax: * matches any run of characters (dots included), ? matches one character.
+# Nested and synthetic classes use $, for example com.example.app.Foo$Bar.
+# Tag each block with its reason, so a reviewer can challenge a single row. Add a row only with a reason:
+# every exclusion hides code from the coverage number.
+
+# -- Generated code ---------------------------------------------------------------------------
+*BuildConfig
+*$$serializer
+*ComposableSingletons*
+*_Impl
+*_Impl$*
+*$WhenMappings
+
+# -- Compose UI surface: covered by UI or screenshot tests, not unit tests --------------------
+*.ui.*Screen
+*.ui.*ScreenKt
+*.ui.theme.*
+*.ui.components.*
+*PreviewKt
+*TestTags
+
+# -- DI wiring and platform entry points ------------------------------------------------------
+*.di.*
+*MainActivity
+*MainViewControllerKt
+*Application

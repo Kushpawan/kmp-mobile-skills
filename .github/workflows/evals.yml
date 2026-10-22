@@ -1,0 +1,55 @@
+name: Evals
+
+# Advisory: runs every trigger eval with real model calls. Never blocks a merge.
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+    inputs:
+      case:
+        description: "Case name glob (empty = all cases)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - name: Skip when no API key is configured
+        id: gate
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "ANTHROPIC_API_KEY secret not set; skipping evals."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v7
+        if: steps.gate.outputs.run == 'true'
+      - uses: actions/setup-node@v7
+        if: steps.gate.outputs.run == 'true'
+        with:
+          node-version: "22"
+      - name: Install Claude Code
+        if: steps.gate.outputs.run == 'true'
+        run: npm install -g @anthropic-ai/claude-code@2.1.308
+      - name: Run evals
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          args=(. --trust-plugin --ablation none --json results.json --threshold 0.8 --no-publish --max-cost-usd 25)
+          if [ -n "${{ inputs.case }}" ]; then args+=(--case "${{ inputs.case }}"); fi
+          claude plugin eval "${args[@]}" || echo "::warning::Eval suite scored below threshold or ran partially (exit $?)."
+      - uses: actions/upload-artifact@v7
+        if: steps.gate.outputs.run == 'true' && always()
+        with:
+          name: eval-results
+          path: |
+            results.json
+            evals/results/
+          if-no-files-found: ignore

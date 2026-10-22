@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate skills (Python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.10", "3.13"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Skill format, size, links and trigger evals
+        run: python3 scripts/validate_skills.py --strict
+      - name: Manifests and README catalog in sync
+        run: python3 scripts/sync_manifests.py --check
+      - name: Script tests (repo + skills)
+        run: python3 scripts/run_tests.py
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Required only when the repository is owned by an organization.
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+  skill-scan:
+    name: Skill security scan
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    uses: cisco-ai-defense/skill-scanner/.github/workflows/scan-skills.yml@2.3.1
+    with:
+      skill_path: skills
+      scanner_version: "2.3.1"
+      scan_mode: scan-all
+      fail_on_severity: high
+      # SARIF upload needs code scanning, which forks and private repos may not have.
+      upload_sarif: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}

@@ -1,0 +1,28 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Validate
+        run: |
+          python3 scripts/validate_skills.py --strict
+          python3 scripts/run_tests.py
+      - name: Manifests carry the tag version
+        run: python3 scripts/sync_manifests.py --check --version "${GITHUB_REF_NAME#v}"
+      - name: Changelog has an entry for this version
+        run: grep -q "^## \[${GITHUB_REF_NAME#v}\]" CHANGELOG.md
+      - uses: softprops/action-gh-release@v3
+        with:
+          generate_release_notes: true

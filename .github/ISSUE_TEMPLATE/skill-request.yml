@@ -1,0 +1,29 @@
+name: Skill request
+description: Propose a new skill or a big extension to an existing one.
+labels: ["skill-request"]
+body:
+  - type: textarea
+    id: job
+    attributes:
+      label: The job the skill should do
+      description: Describe a real situation where you wished your agent knew how to do this.
+    validations:
+      required: true
+  - type: textarea
+    id: triggers
+    attributes:
+      label: How a developer would ask for it
+      description: Two or three requests, error messages or symptoms that should load the skill.
+    validations:
+      required: true
+  - type: textarea
+    id: overlap
+    attributes:
+      label: Overlap
+      description: Existing skills here or in other packs (see README "Works well with") that cover part of this.
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contribution
+      options:
+        - label: I'd like to write this skill myself.

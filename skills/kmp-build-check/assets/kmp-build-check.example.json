@@ -1,0 +1,20 @@
+{
+  "_comment": "Copy to kmp-build-check.json at the Gradle root. Confirm every task with ./gradlew <module>:tasks --all - a task that does not exist FAILs. Keys starting with _ are ignored.",
+  "version": 1,
+  "checks": [
+    { "name": "KMP common compile",        "platform": "any",     "task": ":shared:compileCommonMainKotlinMetadata" },
+    { "name": "Android assemble",          "platform": "android", "task": ":composeApp:assembleDebug" },
+    { "name": "Unit tests (Android host)", "platform": "android", "task": ":shared:testAndroidHostTest" },
+    { "name": "iOS framework link",        "platform": "ios",     "task": ":shared:linkDebugFrameworkIosSimulatorArm64" },
+    { "name": "iOS simulator tests",       "platform": "ios",     "task": ":shared:iosSimulatorArm64Test" }
+  ],
+  "consumers": [
+    {
+      "_comment": "Only for a library repo: rebuild an app that depends on it, against this checkout. The app must declare the property - see references/configuration.md.",
+      "name": "notes-app",
+      "path": "../notes-app",
+      "args": ["-Plocal.notes-core=true"],
+      "task": ":shared:compileCommonMainKotlinMetadata"
+    }
+  ]
+}

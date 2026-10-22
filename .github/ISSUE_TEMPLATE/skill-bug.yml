@@ -1,0 +1,47 @@
+name: Skill bug
+description: A skill gave wrong advice, failed a step, or loaded when it should not have.
+labels: ["bug"]
+body:
+  - type: input
+    id: skill
+    attributes:
+      label: Skill
+      description: Folder name under skills/, e.g. kmp-crash-triage
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What went wrong
+      options:
+        - Wrong or outdated technical advice
+        - A step or script failed
+        - Skill did not load when it should have
+        - Skill loaded when it should not have
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: prompt
+    attributes:
+      label: Your prompt and what happened
+      description: Paste the request you gave the agent and the relevant part of its answer. Remove secrets and private code.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should have happened
+      description: Link official docs if the skill contradicts them.
+  - type: input
+    id: agent
+    attributes:
+      label: Agent, model and version
+      placeholder: "Claude Code 2.1 / Sonnet, Cursor 2.x, Codex CLI ..."
+    validations:
+      required: true
+  - type: input
+    id: stack
+    attributes:
+      label: Project stack
+      placeholder: "Kotlin 2.2, Compose Multiplatform 1.9, AGP 9, Xcode 26 ..."

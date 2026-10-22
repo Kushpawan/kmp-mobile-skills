@@ -1,0 +1,5 @@
+{
+  "name": "kmp-mobile-skills",
+  "description": "Agent skills for Kotlin Multiplatform apps on Android and iOS: build features with shared code, connect it to SwiftUI, and find and fix crashes, flaky tests, build failures and performance problems.",
+  "version": "0.1.0"
+}

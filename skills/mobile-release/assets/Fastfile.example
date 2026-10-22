@@ -1,0 +1,160 @@
+# Example Fastfile for a Kotlin Multiplatform app with an Android and an iOS host.
+# Copy to fastlane/Fastfile and replace every TODO.
+#
+# Assumptions (change them to match the project):
+#   - gradle.properties at the repo root holds the single source of truth:
+#       app.versionName=1.4.0
+#       app.versionCode=42
+#   - Android app module :androidApp, release signing read from env vars in its build.gradle.kts.
+#   - iOS host at iosApp/iosApp.xcodeproj, scheme iosApp, Info.plist uses $(MARKETING_VERSION)
+#     and $(CURRENT_PROJECT_VERSION).
+#   - match stores signing certificates in a private git repo configured in fastlane/Matchfile.
+#
+# Secrets come from environment variables injected by CI. Never commit any of them:
+#   PLAY_SERVICE_ACCOUNT_JSON, ANDROID_KEYSTORE_PATH, ANDROID_KEYSTORE_PASSWORD,
+#   ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD, ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8_BASE64,
+#   MATCH_PASSWORD, MATCH_GIT_BASIC_AUTHORIZATION
+#
+# Directory note: Ruby code in a Fastfile runs inside ./fastlane; actions run from the project root.
+# That is why app_version reads "../gradle.properties" while action paths are root-relative.
+
+PACKAGE_NAME = "com.example.app"            # TODO
+BUNDLE_ID = "com.example.app"               # TODO
+XCODE_PROJECT = "iosApp/iosApp.xcodeproj"   # TODO (or use workspace: for CocoaPods)
+XCODE_SCHEME = "iosApp"                     # TODO
+
+def app_version
+  props = File.read("../gradle.properties")
+  name = props[/^app\.versionName=(.+)$/, 1]&.strip
+  code = props[/^app\.versionCode=(\d+)$/, 1]
+  UI.user_error!("app.versionName / app.versionCode missing from gradle.properties") unless name && code
+  UI.user_error!("app.versionName #{name} is not MAJOR.MINOR.PATCH") unless name.match?(/\A\d+\.\d+\.\d+\z/)
+  { name: name, code: code.to_i }
+end
+
+def asc_api_key
+  app_store_connect_api_key(
+    key_id: ENV.fetch("ASC_KEY_ID"),
+    issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+    key_content: ENV.fetch("ASC_KEY_P8_BASE64"),
+    is_key_content_base64: true
+  )
+end
+
+default_platform(:android)
+
+platform :android do
+  desc "Build a signed release App Bundle"
+  lane :build_release do
+    %w[ANDROID_KEYSTORE_PATH ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD].each do |key|
+      UI.user_error!("#{key} is not set") if ENV[key].to_s.empty?
+    end
+    gradle(
+      task: "bundle",
+      # flavor: "production",   # TODO: set when the app has product flavours
+      build_type: "Release",
+      print_command: true
+    )
+  end
+
+  desc "Upload a new build to the Play internal testing track"
+  lane :internal do
+    build_release
+    upload_to_play_store(
+      package_name: PACKAGE_NAME,
+      track: "internal",
+      aab: lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH],
+      json_key_data: ENV.fetch("PLAY_SERVICE_ACCOUNT_JSON"),
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  desc "Promote the current internal build to production as a staged rollout. Option: rollout:0.1"
+  lane :promote_production do |options|
+    rollout = options.fetch(:rollout, "0.1").to_s
+    upload_to_play_store(
+      package_name: PACKAGE_NAME,
+      track: "internal",
+      track_promote_to: "production",
+      track_promote_release_status: "inProgress",
+      rollout: rollout,
+      version_code: app_version[:code],
+      json_key_data: ENV.fetch("PLAY_SERVICE_ACCOUNT_JSON"),
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  desc "Raise the production rollout fraction. Option: rollout:0.5 (1 completes the rollout)"
+  lane :update_rollout do |options|
+    rollout = options.fetch(:rollout).to_s
+    upload_to_play_store(
+      package_name: PACKAGE_NAME,
+      track: "production",
+      rollout: rollout,
+      version_code: app_version[:code],
+      json_key_data: ENV.fetch("PLAY_SERVICE_ACCOUNT_JSON"),
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+end
+
+platform :ios do
+  before_all do
+    # On CI: creates a temporary keychain and switches match to readonly. No-op on a laptop.
+    setup_ci
+  end
+
+  desc "Build a signed App Store IPA and upload it to TestFlight"
+  lane :beta do
+    api_key = asc_api_key
+    match(
+      type: "appstore",
+      readonly: true,                     # CI never creates or revokes certificates
+      app_identifier: BUNDLE_ID,
+      api_key: api_key,
+      git_basic_authorization: ENV["MATCH_GIT_BASIC_AUTHORIZATION"]
+    )
+    version = app_version
+    build_app(
+      project: XCODE_PROJECT,
+      scheme: XCODE_SCHEME,
+      configuration: "Release",
+      export_method: "app-store",
+      output_directory: "build/ios",
+      # Same numbers as Android, from the same file. CFBundleVersion must grow on every upload.
+      xcargs: "MARKETING_VERSION=#{version[:name]} CURRENT_PROJECT_VERSION=#{version[:code]}"
+    )
+    upload_to_testflight(
+      api_key: api_key,
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  desc "Submit the already-uploaded TestFlight build for App Store review with phased release"
+  lane :release do
+    version = app_version
+    upload_to_app_store(
+      api_key: asc_api_key,
+      app_version: version[:name],
+      build_number: version[:code].to_s,
+      skip_binary_upload: true,
+      skip_metadata: true,
+      skip_screenshots: true,
+      submit_for_review: true,
+      automatic_release: false,
+      phased_release: true,
+      precheck_include_in_app_purchases: false,
+      force: true                         # no HTML preview report before upload; CI is non-interactive
+    )
+  end
+end

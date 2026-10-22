@@ -1,0 +1,14 @@
+# claude plugin eval output
+evals/results/
+evals/**/results/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.iml

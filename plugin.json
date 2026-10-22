@@ -1,0 +1,23 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "kmp-mobile-skills",
+  "version": "0.1.0",
+  "description": "Agent skills for Kotlin Multiplatform apps on Android and iOS: build features with shared code, connect it to SwiftUI, and find and fix crashes, flaky tests, build failures and performance problems.",
+  "author": {
+    "name": "kmp-mobile-skills contributors",
+    "url": "https://github.com/Kushpawan/kmp-mobile-skills"
+  },
+  "homepage": "https://github.com/Kushpawan/kmp-mobile-skills",
+  "repository": "https://github.com/Kushpawan/kmp-mobile-skills",
+  "license": "Apache-2.0",
+  "keywords": [
+    "kotlin",
+    "kotlin-multiplatform",
+    "kmp",
+    "compose-multiplatform",
+    "android",
+    "ios",
+    "swiftui",
+    "skills"
+  ]
+}
