@@ -733,6 +733,14 @@ class Cli(unittest.TestCase):
                 self.assertEqual(rc.main(["--project", tmp, "--detect", "static", "--write"]), 2)
             self.assertEqual((Path(tmp) / rc.CONFIG_NAME).read_text(), "{}")
 
+    def test_should_exit_two_when_a_git_value_looks_like_an_option(self):
+        for argv in (["--base", "main", "--remote=--upload-pack=x"], ["--base=-x"], ["--base-ref=--all"]):
+            with self.subTest(argv=argv), contextlib.redirect_stderr(io.StringIO()) as err, \
+                    self.assertRaises(SystemExit) as e:
+                rc.main(argv)
+            self.assertEqual(e.exception.code, 2)
+            self.assertIn("must not start with '-'", err.getvalue())
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

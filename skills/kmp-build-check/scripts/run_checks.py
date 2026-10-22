@@ -893,6 +893,10 @@ def main(argv=None) -> int:
     ap.add_argument("--write", action="store_true", help="with --detect, save the proposal to the config path")
     ap.add_argument("--force", action="store_true", help="with --detect --write, overwrite an existing config")
     a = ap.parse_args(argv)
+    # These values reach git as positional arguments; a leading '-' would be read as an option.
+    for flag, value in (("--remote", a.remote), ("--base", a.base), ("--base-ref", a.base_ref)):
+        if value and value.startswith("-"):
+            ap.error(f"{flag} must not start with '-': {value!r}")
 
     project = a.project.resolve()
     config_path = (a.config or project / CONFIG_NAME).resolve()
