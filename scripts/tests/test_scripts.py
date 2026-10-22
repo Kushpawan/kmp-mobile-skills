@@ -102,6 +102,16 @@ class FrontmatterParserTest(unittest.TestCase):
         with self.assertRaises(skilllib.FrontmatterError):
             skilllib.parse_frontmatter_block("name: a\nname: b\n")
 
+    def test_should_reject_unquoted_colon_space_or_comment_when_value_is_plain(self) -> None:
+        for block in ("description: Use when tokens: colors\n", "description: Use when ready:\n",
+                      "description: Use when C # code\n", "metadata:\n  platforms: ios: android\n"):
+            with self.subTest(block=block), self.assertRaises(skilllib.FrontmatterError):
+                skilllib.parse_frontmatter_block(block)
+
+    def test_should_accept_colon_space_when_single_quoted(self) -> None:
+        parsed = skilllib.parse_frontmatter_block("description: 'Use when kfun: frames, it''s fine'\n")
+        self.assertEqual(parsed["description"], "Use when kfun: frames, it's fine")
+
 
 
 class ValidatorTest(unittest.TestCase):

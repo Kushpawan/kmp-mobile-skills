@@ -45,11 +45,14 @@ def _unquote(value: str) -> str:
     return value
 
 
-def _parse_scalar(value: str):
+def _parse_scalar(value: str, key: str = ""):
     value = value.strip()
     if value.startswith("[") and value.endswith("]"):
         items = [item.strip() for item in value[1:-1].split(",")]
         return [_unquote(item) for item in items if item]
+    # Real YAML parsers (npx skills, Codex, Cursor) reject ': ' in a plain scalar and cut it at ' #'.
+    if value[:1] not in ("'", '"') and (": " in value or value.endswith(":") or " #" in value):
+        raise FrontmatterError(f"value of {key!r} contains ': ' or ' #' unquoted; wrap it in single quotes")
     return _unquote(value)
 
 
@@ -95,10 +98,10 @@ def parse_frontmatter_block(text: str) -> dict:
                 sub_match = _KEY_RE.match(sub)
                 if not sub_match:
                     raise FrontmatterError(f"cannot parse nested line under {key!r}: {sub!r}")
-                nested[sub_match.group(1)] = _parse_scalar(sub_match.group(2) or "")
+                nested[sub_match.group(1)] = _parse_scalar(sub_match.group(2) or "", f"{key}.{sub_match.group(1)}")
             result[key] = nested
         else:
-            result[key] = _parse_scalar(value)
+            result[key] = _parse_scalar(value, key)
     return result
 
 

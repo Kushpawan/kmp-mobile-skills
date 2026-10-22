@@ -40,7 +40,7 @@ metadata:
 | Field | Rule |
 |---|---|
 | `name` | **[CI]** 1–64 chars, `a-z 0-9 -`, no leading/trailing/double hyphen, must not contain `claude` or `anthropic`. |
-| `description` | **[CI]** 1–1024 chars, no XML tags. Aim for under 400. Third person. Starts with **"Use when"**. |
+| `description` | **[CI]** 1–1024 chars, no XML tags. Aim for under 400. Third person. Starts with **"Use when"**. **[CI]** If it contains `: ` or ` #`, wrap it in single quotes (double any `'` inside); strict YAML parsers skip the skill otherwise. |
 | `license` | **[CI]** `Apache-2.0` for skills written here. Vendored skills keep their upstream SPDX id. |
 | `compatibility` | What the skill needs: project type, OS, tools. |
 | `metadata` | **[CI]** string→string map. Always set `category` (one of `build`, `ui`, `data`, `ios-interop`, `testing`, `debug`, `performance`, `review`, `workflow`, `release`, `migration`, `tooling`) and `platforms` (`android`, `ios`, or `android, ios`). |
