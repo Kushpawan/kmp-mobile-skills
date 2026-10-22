@@ -50,6 +50,10 @@ kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref =
 """
 
 
+HAS_TOMLLIB = catalog_drift.tomllib is not None
+
+
+@unittest.skipUnless(HAS_TOMLLIB, "catalog_drift.py needs tomllib (Python 3.11+)")
 class CatalogDriftTest(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = tempfile.TemporaryDirectory()
@@ -169,6 +173,16 @@ class CatalogDriftTest(unittest.TestCase):
             catalog_drift.main(["--help"])
         self.assertEqual(0, raised.exception.code)
         self.assertIn("--fail-on-drift", out.getvalue())
+
+
+@unittest.skipIf(HAS_TOMLLIB, "only runs on Python 3.10, which has no tomllib")
+class CatalogDriftWithoutTomllibTest(unittest.TestCase):
+    def test_should_exitTwoWithClearError_when_tomllibIsUnavailable(self) -> None:
+        err = io.StringIO()
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
+            code = catalog_drift.main(["libs.versions.toml"])
+        self.assertEqual(2, code)
+        self.assertIn("Python 3.11+ is required", err.getvalue())
 
 
 if __name__ == "__main__":
