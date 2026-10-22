@@ -1,6 +1,6 @@
 ---
 name: kmp-crash-triage
-description: Use when a Kotlin Multiplatform app crashes, hangs or is killed on Android or iOS — FATAL EXCEPTION, ANR, SIGABRT, SIGSEGV, EXC_BAD_ACCESS, EXC_BREAKPOINT, "Uncaught Kotlin exception", kfun: frames, an unsymbolicated .ips or .crash file, a tombstone, an obfuscated R8 stack trace, a Crashlytics, Bugsnag or Play Console vitals crash cluster, missing dSYM or mapping.txt, or SQLITE_MISUSE on iOS.
+description: 'Use when a Kotlin Multiplatform app crashes, hangs or is killed on Android or iOS — FATAL EXCEPTION, ANR, SIGABRT, SIGSEGV, EXC_BAD_ACCESS, EXC_BREAKPOINT, "Uncaught Kotlin exception", kfun: frames, an unsymbolicated .ips or .crash file, a tombstone, an obfuscated R8 stack trace, a Crashlytics, Bugsnag or Play Console vitals crash cluster, missing dSYM or mapping.txt, or SQLITE_MISUSE on iOS.'
 license: Apache-2.0
 compatibility: Kotlin Multiplatform app with Android and iOS targets. Android steps need adb and the Android SDK command-line tools; iOS steps need macOS with Xcode command-line tools (xcrun, atos, dwarfdump).
 metadata:

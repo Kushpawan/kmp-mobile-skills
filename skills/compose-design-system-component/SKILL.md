@@ -1,6 +1,6 @@
 ---
 name: compose-design-system-component
-description: Use when creating or changing a reusable Compose Multiplatform design-system component — button, text field, chip, card, badge, avatar, dialog — or theme tokens: variant and size enums, enabled/disabled/loading/error states, CompositionLocal theming, light/dark previews, accessibility semantics, testTag hooks, component gallery. Also for hardcoded colors or dp in components, or a component that ignores dark mode.
+description: 'Use when creating or changing a reusable Compose Multiplatform design-system component — button, text field, chip, card, badge, avatar, dialog — or theme tokens: variant and size enums, enabled/disabled/loading/error states, CompositionLocal theming, light/dark previews, accessibility semantics, testTag hooks, component gallery. Also for hardcoded colors or dp in components, or a component that ignores dark mode.'
 license: Apache-2.0
 compatibility: Kotlin Multiplatform project with Compose Multiplatform 1.8+ (commonMain UI). Component UI tests need an iOS simulator or an Android device/emulator.
 metadata:
