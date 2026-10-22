@@ -38,7 +38,7 @@ one of those five drifting out of sync.
 ```bash
 # Current integration mode
 grep -rn "embedAndSignAppleFrameworkForXcode" --include=project.pbxproj .
-find . -name Package.swift -not -path "*/.build/*" -not -path "*/build/*" -exec grep -ln binaryTarget {} +
+grep -rln --include=Package.swift --exclude-dir=.build --exclude-dir=build binaryTarget .
 ls Podfile *.podspec 2>/dev/null; grep -rn "cocoapods {" --include=*.gradle.kts .
 
 # Framework definition: name, static/dynamic, targets, exports, bundle id, linker options

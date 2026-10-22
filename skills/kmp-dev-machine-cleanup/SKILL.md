@@ -46,10 +46,10 @@ know which Gradle, Kotlin/Native and SDK versions are still in use:
 ```bash
 PROJECT_ROOTS=("$HOME/dev")          # replace with the user's answer
 for r in "${PROJECT_ROOTS[@]}"; do
-  find "$r" -maxdepth 4 -name gradle-wrapper.properties -path '*gradle/wrapper/*' -exec grep -ho 'gradle-[0-9.]*-' {} + 2>/dev/null
+  find "$r" -maxdepth 4 -name gradle-wrapper.properties -path '*gradle/wrapper/*' -print0 2>/dev/null | xargs -0 grep -ho 'gradle-[0-9.]*-'
 done | sort -u                                                   # Gradle versions in use
 for r in "${PROJECT_ROOTS[@]}"; do
-  find "$r" -maxdepth 4 -name libs.versions.toml -exec grep -hE '^kotlin *=' {} + 2>/dev/null
+  find "$r" -maxdepth 4 -name libs.versions.toml -print0 2>/dev/null | xargs -0 grep -hE '^kotlin *='
 done | sort -u                                                   # Kotlin versions in use
 ```
 
